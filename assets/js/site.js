@@ -10,8 +10,12 @@
     const dots = [...root.querySelectorAll('[data-go]')]; const pause = root.querySelector('.slider__pause');
     const TIME = 7000; let i = 0; let timer = null; let userPaused = reduced; let hover = false;
     root.style.setProperty('--slide-time', TIME + 'ms');
+    // Deferred slide images: swap data-srcset/data-src in just before a slide is needed
+    const hydrate = (s) => { if (!s) return; s.querySelectorAll('[data-srcset]').forEach((el) => { el.srcset = el.dataset.srcset; el.removeAttribute('data-srcset'); }); s.querySelectorAll('img[data-src]').forEach((el) => { el.src = el.dataset.src; el.removeAttribute('data-src'); }); };
+    addEventListener('load', () => setTimeout(() => hydrate(slides[1]), 1200), { once: true });
     const show = (n) => {
       i = (n + slides.length) % slides.length;
+      hydrate(slides[i]); hydrate(slides[(i + 1) % slides.length]);
       slides.forEach((s, k) => { const on = k === i; s.classList.toggle('is-active', on); s.inert = !on; });
       dots.forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
       restart();
@@ -107,8 +111,8 @@
     try { st = JSON.parse(localStorage.getItem('sb-reader') || '{}'); } catch (e) { /* private mode */ }
     const apply = () => {
       if (st.size) root.dataset.size = st.size; else delete root.dataset.size;
-      if (st.theme === 'paper') root.dataset.theme = 'paper'; else delete root.dataset.theme;
-      reader.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String((st.theme || 'navy') === b.dataset.themeSet)));
+      if (st.theme === 'navy') root.dataset.theme = 'navy'; else delete root.dataset.theme;
+      reader.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String((st.theme || 'paper') === b.dataset.themeSet)));
       reader.querySelector('[data-size-step="-1"]').disabled = (st.size || 0) <= -1;
       reader.querySelector('[data-size-step="1"]').disabled = (st.size || 0) >= 3;
       try { localStorage.setItem('sb-reader', JSON.stringify(st)); } catch (e) { /* not saved */ }
@@ -116,7 +120,7 @@
     reader.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.sizeStep) st.size = Math.max(-1, Math.min(3, (st.size || 0) + Number(b.dataset.sizeStep))) || undefined;
-      if (b.dataset.themeSet) st.theme = b.dataset.themeSet === 'paper' ? 'paper' : undefined;
+      if (b.dataset.themeSet) st.theme = b.dataset.themeSet === 'navy' ? 'navy' : undefined;
       apply();
     });
     document.addEventListener('click', (e) => { if (reader.open && !reader.contains(e.target)) reader.open = false; });
@@ -189,4 +193,20 @@
     if (!navigator.share) { b.hidden = true; return; }
     b.addEventListener('click', () => navigator.share({ title: document.title, url: location.href }).catch(() => {}));
   });
+})();
+
+// Journal: the four covers. Choosing one swaps the large cover (a soft cross-fade where supported).
+(() => {
+  const issue = document.querySelector("[data-issue]");
+  if (!issue) return;
+  const ed = issue.querySelector("[data-issue-ed]");
+  const btns = issue.querySelectorAll("[data-ed-set]");
+  btns.forEach((b) => b.addEventListener("click", () => {
+    const swap = () => {
+      issue.querySelectorAll("[data-ed]").forEach((a) => { a.hidden = a.dataset.ed !== b.dataset.edSet; });
+      btns.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      ed.textContent = b.dataset.label;
+    };
+    if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(swap); else swap();
+  }));
 })();
