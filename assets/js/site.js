@@ -45,8 +45,6 @@
   const layered = [...document.querySelectorAll('.place, .store-hero__media')];
   if (layered.length && !reduced) {
     let ticking = false;
-    reader.addEventListener('focusin', () => reader.classList.remove('is-tucked'));
-    document.addEventListener('click', (e) => { if (reader.open && !reader.contains(e.target)) reader.open = false; });
     const onScroll = () => {
       ticking = false;
       layered.forEach((el) => {
@@ -95,6 +93,7 @@
       if (b.dataset.themeSet) st.theme = b.dataset.themeSet === 'navy' ? 'navy' : undefined;
       apply();
     });
+    reader.addEventListener('focusin', () => reader.classList.remove('is-tucked'));
     document.addEventListener('click', (e) => { if (reader.open && !reader.contains(e.target)) reader.open = false; });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && reader.open) { reader.open = false; reader.querySelector('summary').focus(); } });
     apply();
