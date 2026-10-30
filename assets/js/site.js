@@ -180,3 +180,6 @@ document.querySelectorAll('form.signup[data-pending]').forEach((f) => f.addEvent
 // Kit sends new subscribers back to /newsletter?subscribed
 if (/[?&]subscribed\b/.test(location.search)) { const t = document.querySelector('.signup__thanks'); if (t) t.hidden = false; }
 
+// Phone menu: mark the header while it is open (CSS lifts the frosted glass so the menu can fill the screen)
+document.querySelectorAll('.nav details').forEach((d) => { const head = d.closest('.site-head'); d.addEventListener('toggle', () => head && head.classList.toggle('menu-open', d.open)); });
+
