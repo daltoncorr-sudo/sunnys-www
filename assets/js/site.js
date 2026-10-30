@@ -4,6 +4,15 @@
 
   // Image slider (home). Autoplays unless the visitor prefers reduced motion; pause button for WCAG 2.2.2.
   document.querySelectorAll('.slider').forEach((root) => {
+    // An event banner leaves on its own once the evening is over, even before the next rebuild
+    root.querySelectorAll('.slide[data-end]').forEach((s) => {
+      if (new Date(s.dataset.end) > new Date()) return;
+      const k = [...root.querySelectorAll('.slide')].indexOf(s); s.remove();
+      const d = root.querySelectorAll('[data-go]')[k]; if (d) d.closest('li').remove();
+      const all = [...root.querySelectorAll('.slide')];
+      all.forEach((x, n) => x.setAttribute('aria-label', `${n + 1} of ${all.length}`));
+      root.querySelectorAll('[data-go]').forEach((b, n) => { b.dataset.go = n; b.setAttribute('aria-label', b.getAttribute('aria-label').replace(/slide \d+/, `slide ${n + 1}`)); });
+    });
     const slides = [...root.querySelectorAll('.slide')]; const controls = root.querySelector('.slider__controls');
     if (slides.length < 2 || !controls) return;
     controls.hidden = false;
