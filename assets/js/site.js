@@ -17,6 +17,7 @@
     if (slides.length < 2 || !controls) return;
     controls.hidden = false;
     const dots = [...root.querySelectorAll('[data-go]')]; const pause = root.querySelector('.slider__pause');
+    const head = document.querySelector('.home .site-head');
     const TIME = 7000; let i = 0; let timer = null; let userPaused = reduced; let hover = false;
     root.style.setProperty('--slide-time', TIME + 'ms');
     // Deferred slide images: swap data-srcset/data-src in just before a slide is needed
@@ -26,6 +27,7 @@
       i = (n + slides.length) % slides.length;
       hydrate(slides[i]); hydrate(slides[(i + 1) % slides.length]);
       slides.forEach((s, k) => { const on = k === i; s.classList.toggle('is-active', on); s.inert = !on; });
+      const light = slides[i].classList.contains('slide--light'); root.classList.toggle('on-light', light); if (head) head.classList.toggle('on-light', light);
       dots.forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
       restart();
     };
