@@ -171,17 +171,3 @@
   const on = () => head.classList.toggle('is-solid', scrollY > (slider ? slider.offsetHeight - 80 : 40));
   on(); addEventListener('scroll', on, { passive: true });
 })();
-
-// Tarzana: 3D blooms in the Shades of Petals tile. WebGL only, loaded when the tile is near the screen.
-(() => {
-  const box = document.querySelector('[data-petals]'); if (!box || !('IntersectionObserver' in window)) return;
-  let gl = false; try { const c = document.createElement('canvas'); gl = !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { gl = false; }
-  if (!gl) return;
-  const me = document.querySelector('script[src*="site.js"]'); if (!me) return;
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const io = new IntersectionObserver((es) => {
-    if (!es.some((e) => e.isIntersecting)) return; io.disconnect();
-    import(new URL('petals.js', me.src).href).then((m) => m.mount(box, { reduced })).catch(() => {});
-  }, { rootMargin: '300px 0px' });
-  io.observe(box);
-})();
