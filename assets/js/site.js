@@ -45,6 +45,8 @@
   const layered = [...document.querySelectorAll('.place, .store-hero__media')];
   if (layered.length && !reduced) {
     let ticking = false;
+    reader.addEventListener('focusin', () => reader.classList.remove('is-tucked'));
+    document.addEventListener('click', (e) => { if (reader.open && !reader.contains(e.target)) reader.open = false; });
     const onScroll = () => {
       ticking = false;
       layered.forEach((el) => {
@@ -136,7 +138,7 @@
       if (bar) bar.style.transform = `scaleX(${p})`;
       const y = scrollY;
       if (Math.abs(y - lastY) > 8) {
-        if (!reader.open) reader.classList.toggle('is-tucked', y > lastY && y > 400 && p < 1);
+        if (!reader.open && !reader.contains(document.activeElement)) reader.classList.toggle('is-tucked', y > lastY && y > 400 && p < 1);
         lastY = y;
       }
     };
@@ -180,7 +182,7 @@
       tbody.innerHTML = html;
       list.innerHTML = inMonth.length
         ? `<ul class="event-list">${inMonth.map((e) => `<li><a href="${esc(e.url)}"><time datetime="${esc(e.start)}">${dayLabel(e.d)}</time><span>${esc(e.name)}</span><span class="event-list__rsvp">RSVP</span></a></li>`).join('')}</ul>`
-        : `<p class="empty">Nothing on the calendar for ${monthName()} yet. New events are announced here and in the newsletter.</p>`;
+        : `<p class="calendar__empty">Nothing on the calendar for ${monthName()} yet.</p>`;
     };
     cal.querySelectorAll('[data-month]').forEach((b) => b.addEventListener('click', () => {
       m += Number(b.dataset.month); if (m < 1) { m = 12; y -= 1; } if (m > 12) { m = 1; y += 1; } render();
