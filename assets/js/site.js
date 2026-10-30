@@ -1,10 +1,67 @@
 // Sunny's Bookshop: small progressive enhancements. The site works without this file.
 (() => {
-  // Ticker pause (WCAG 2.2.2)
-  document.querySelectorAll('.ticker__pause').forEach((b) => b.addEventListener('click', () => {
-    const t = b.closest('.ticker'); const paused = t.classList.toggle('is-paused');
-    b.setAttribute('aria-pressed', String(paused)); b.textContent = paused ? 'Play' : 'Pause';
-  }));
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Image slider (home). Autoplays unless the visitor prefers reduced motion; pause button for WCAG 2.2.2.
+  document.querySelectorAll('.slider').forEach((root) => {
+    const slides = [...root.querySelectorAll('.slide')]; const controls = root.querySelector('.slider__controls');
+    if (slides.length < 2 || !controls) return;
+    controls.hidden = false;
+    const dots = [...root.querySelectorAll('[data-go]')]; const pause = root.querySelector('.slider__pause');
+    const TIME = 7000; let i = 0; let timer = null; let userPaused = reduced; let hover = false;
+    root.style.setProperty('--slide-time', TIME + 'ms');
+    const show = (n) => {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => { const on = k === i; s.classList.toggle('is-active', on); s.inert = !on; });
+      dots.forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
+      restart();
+    };
+    const playing = () => !userPaused && !hover && !document.hidden;
+    function restart() {
+      clearTimeout(timer); root.classList.toggle('is-playing', playing());
+      // restart the progress animation on the current dot
+      const bar = dots[i] && dots[i].querySelector('span'); if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+      if (playing()) timer = setTimeout(() => show(i + 1), TIME);
+    }
+    dots.forEach((d) => d.addEventListener('click', () => show(Number(d.dataset.go))));
+    root.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => show(i + Number(b.dataset.step))));
+    const setPaused = (p) => { userPaused = p; pause.setAttribute('aria-pressed', String(p)); pause.setAttribute('aria-label', p ? 'Play slideshow' : 'Pause slideshow'); restart(); };
+    setPaused(userPaused);
+    pause.addEventListener('click', () => setPaused(!userPaused));
+    root.addEventListener('focusin', () => { hover = true; restart(); });
+    root.addEventListener('focusout', () => { hover = false; restart(); });
+    document.addEventListener('visibilitychange', restart);
+    root.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') show(i + 1); if (e.key === 'ArrowLeft') show(i - 1); });
+    let x0 = null;
+    root.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') x0 = e.clientX; });
+    root.addEventListener('pointerup', (e) => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1)); });
+  });
+
+  // Depth on the shop cards: art layers drift with scroll and follow the pointer
+  const layered = [...document.querySelectorAll('.place, .store-hero__media')];
+  if (layered.length && !reduced) {
+    let ticking = false;
+    const onScroll = () => {
+      ticking = false;
+      layered.forEach((el) => {
+        const r = el.getBoundingClientRect(); if (r.bottom < -200 || r.top > innerHeight + 200) return;
+        const c = (r.top + r.height / 2 - innerHeight / 2) / innerHeight;  // -1 (above) .. 1 (below)
+        el.style.setProperty('--sy', Math.max(-1.2, Math.min(1.2, c)).toFixed(3));
+      });
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
+    onScroll();
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      layered.forEach((el) => {
+        el.addEventListener('pointermove', (e) => {
+          const r = el.getBoundingClientRect();
+          el.style.setProperty('--mx', (((e.clientX - r.left) / r.width) * 2 - 1).toFixed(3));
+          el.style.setProperty('--my', (((e.clientY - r.top) / r.height) * 2 - 1).toFixed(3));
+        });
+        el.addEventListener('pointerleave', () => { el.style.setProperty('--mx', 0); el.style.setProperty('--my', 0); });
+      });
+    }
+  }
 
   // Open-now status, worked out in Los Angeles time from the hours Sanaz edits
   const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -50,8 +107,8 @@
     try { st = JSON.parse(localStorage.getItem('sb-reader') || '{}'); } catch (e) { /* private mode */ }
     const apply = () => {
       if (st.size) root.dataset.size = st.size; else delete root.dataset.size;
-      if (st.theme && st.theme !== 'auto') root.dataset.theme = st.theme; else delete root.dataset.theme;
-      reader.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String((st.theme || 'auto') === b.dataset.themeSet)));
+      if (st.theme === 'paper') root.dataset.theme = 'paper'; else delete root.dataset.theme;
+      reader.querySelectorAll('[data-theme-set]').forEach((b) => b.setAttribute('aria-pressed', String((st.theme || 'navy') === b.dataset.themeSet)));
       reader.querySelector('[data-size-step="-1"]').disabled = (st.size || 0) <= -1;
       reader.querySelector('[data-size-step="1"]').disabled = (st.size || 0) >= 3;
       try { localStorage.setItem('sb-reader', JSON.stringify(st)); } catch (e) { /* not saved */ }
@@ -59,7 +116,7 @@
     reader.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.sizeStep) st.size = Math.max(-1, Math.min(3, (st.size || 0) + Number(b.dataset.sizeStep))) || undefined;
-      if (b.dataset.themeSet) st.theme = b.dataset.themeSet === 'auto' ? undefined : b.dataset.themeSet;
+      if (b.dataset.themeSet) st.theme = b.dataset.themeSet === 'paper' ? 'paper' : undefined;
       apply();
     });
     document.addEventListener('click', (e) => { if (reader.open && !reader.contains(e.target)) reader.open = false; });
