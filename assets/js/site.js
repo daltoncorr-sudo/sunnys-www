@@ -171,3 +171,12 @@
   const on = () => head.classList.toggle('is-solid', scrollY > (slider ? slider.offsetHeight - 80 : 40));
   on(); addEventListener('scroll', on, { passive: true });
 })();
+
+// Newsletter. Until the Kit form address is set (site.json newsletterAction), say so plainly instead of pretending to subscribe.
+document.querySelectorAll('form.signup[data-pending]').forEach((f) => f.addEventListener('submit', (e) => {
+  e.preventDefault(); const m = f.querySelector('.signup__msg');
+  if (m) m.textContent = 'Thank you. Our mailing list opens very soon, so please check back.';
+}));
+// Kit sends new subscribers back to /newsletter?subscribed
+if (/[?&]subscribed\b/.test(location.search)) { const t = document.querySelector('.signup__thanks'); if (t) t.hidden = false; }
+
