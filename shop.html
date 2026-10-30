@@ -200,18 +200,24 @@ p { margin: 0; }
 .card a:hover h3 { text-decoration: underline; text-decoration-color: var(--gilt); text-decoration-thickness: 1px; text-underline-offset: .2em; }
 .card p { margin-top: .5rem; color: var(--muted); font-size: 1.05rem; }
 
-/* Browse online: books and Sunny's merch */
+/* Browse online: a row of books (the covers themselves, no tile), then a row of Sunny's merch.
+   Each product links to its page in the online shop (site.json shopPicks[].link). */
+.shop-row__label { font: 500 var(--label)/1.3 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--brown); margin: 0 0 1.5rem; }
+.shop-grid + .shop-row__label { margin-top: clamp(3.5rem, 7vw, 5rem); }
 .shop-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3rem clamp(1rem, 3vw, 2rem); list-style: none; margin: 0; padding: 0; }
 @media (min-width: 60em) { .shop-grid { grid-template-columns: repeat(4, 1fr); } }
 .product a { display: block; text-decoration: none; }
-.product__img { display: block; position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--linen); }
+.product__img { display: block; position: relative; aspect-ratio: 4 / 5; overflow: hidden; }
 .product__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--ease); }
-.product--book .product__img { background: linear-gradient(160deg, #eadfc8, var(--linen)); }
-.product--book .product__img img { object-fit: contain; padding: 11% 18%; filter: drop-shadow(0 16px 18px rgb(40 30 15 / .35)); }
-.product a:hover .product__img img { transform: scale(1.04); }
-.product--book a:hover .product__img img { transform: translateY(-.4rem) rotate(-1deg); }
-.product__kind { display: block; margin-top: 1.1rem; font: 500 var(--label)/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--brown); }
-.product h3 { font-size: 1.45rem; margin-top: .4rem; line-height: 1.1; }
+.product--merch .product__img { background: var(--linen); }
+.product--merch a:hover .product__img img { transform: scale(1.04); }
+.product--book .product__img { overflow: visible; display: flex; align-items: flex-end; justify-content: center; }
+.product--book .product__img img { width: auto; height: auto; max-width: 78%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 16px 14px rgb(40 30 15 / .35)); transition: transform .6s var(--ease); transform-origin: 50% 100%; }
+.product--book a:hover .product__img img { transform: translateY(-.5rem) rotate(-1deg); }
+.product__title { display: block; margin-top: 1.25rem; font: 500 1.45rem/1.1 var(--display); }
+.product--book .product__title { text-align: center; }
+.product--book .product__note, .product--book .product__price { text-align: center; }
+.product a:hover .product__title { text-decoration: underline; text-decoration-color: var(--gilt); text-decoration-thickness: 1px; text-underline-offset: .18em; }
 .product__note { display: block; margin-top: .3rem; font-size: .98rem; color: var(--muted); }
 .product__price { display: block; margin-top: .45rem; font: 500 .95rem/1 var(--sans); letter-spacing: .04em; font-variant-numeric: lining-nums; }
 
@@ -545,12 +551,12 @@ main > :last-child:not(.jp-band) { margin-bottom: clamp(5rem, 10vw, 8rem); }
 <div class="wrap">
   <ul class="picks">
     <li class="pick"><img src="." alt="Cover of The Last Days of Vic & Coco by " sizes="10rem"><span class="label"></span><h3>The Last Days of Vic & Coco</h3><p></p></li>
-    <li class="pick"><img src="." alt="Cover of Signature Dad Cap by " sizes="10rem"><span class="label"></span><h3>Signature Dad Cap</h3><p></p></li>
     <li class="pick"><img src="." alt="Cover of Call Off the Dark by " sizes="10rem"><span class="label"></span><h3>Call Off the Dark</h3><p></p></li>
-    <li class="pick"><img src="." alt="Cover of For Readers and Writers Tee by " sizes="10rem"><span class="label"></span><h3>For Readers and Writers Tee</h3><p></p></li>
     <li class="pick"><img src="." alt="Cover of The King of Aloe Vera by " sizes="10rem"><span class="label"></span><h3>The King of Aloe Vera</h3><p></p></li>
-    <li class="pick"><img src="." alt="Cover of Utility Tote Bag by " sizes="10rem"><span class="label"></span><h3>Utility Tote Bag</h3><p></p></li>
     <li class="pick"><img src="." alt="Cover of The House in the Cerulean Sea by " sizes="10rem"><span class="label"></span><h3>The House in the Cerulean Sea</h3><p></p></li>
+    <li class="pick"><img src="." alt="Cover of Signature Dad Cap by " sizes="10rem"><span class="label"></span><h3>Signature Dad Cap</h3><p></p></li>
+    <li class="pick"><img src="." alt="Cover of For Readers and Writers Tee by " sizes="10rem"><span class="label"></span><h3>For Readers and Writers Tee</h3><p></p></li>
+    <li class="pick"><img src="." alt="Cover of Utility Tote Bag by " sizes="10rem"><span class="label"></span><h3>Utility Tote Bag</h3><p></p></li>
     <li class="pick"><img src="." alt="Cover of Sunny's Bookshop Leather Journal by " sizes="10rem"><span class="label"></span><h3>Sunny's Bookshop Leather Journal</h3><p></p></li>
   </ul>
 </div>
