@@ -115,11 +115,11 @@
   }
 
   // Events: a page built before an event ended still hides it once it has passed
-  const ups = document.querySelectorAll('.upcoming__item[data-end]');
+  const ups = document.querySelectorAll('.card--upcoming[data-end]');
   if (ups.length) {
     const now = Date.now(); let left = 0;
     ups.forEach((li) => { if (new Date(li.dataset.end).getTime() < now) li.hidden = true; else left += 1; });
-    const none = document.querySelector('.upcoming__none'); if (none && !left) none.hidden = false;
+    const none = document.querySelector('.events-none'); if (none && !left) none.hidden = false;
   }
 
   // Native share on phones
@@ -150,4 +150,13 @@
   const menu = document.querySelector(".nav details");
   if (!menu) return;
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && menu.open) { menu.open = false; menu.querySelector("summary").focus(); } });
+})();
+
+// Home: the header sits clear over the slider, then turns frosted once you scroll past it.
+(() => {
+  const head = document.querySelector('.home .site-head');
+  if (!head) return;
+  const slider = document.querySelector('.slider');
+  const on = () => head.classList.toggle('is-solid', scrollY > (slider ? slider.offsetHeight - 80 : 40));
+  on(); addEventListener('scroll', on, { passive: true });
 })();
