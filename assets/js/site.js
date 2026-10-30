@@ -69,38 +69,8 @@
     }
   }
 
-  // Open-now status, worked out in Los Angeles time from the hours Sanaz edits
-  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const la = () => {
-    const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
-    return { day: p.weekday, date: `${p.year}-${p.month}-${p.day}`, mins: (+p.hour) * 60 + (+p.minute) };
-  };
-  const t12 = (hm) => { let [h, m] = hm.split(':').map(Number); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return m ? `${h}:${String(m).padStart(2, '0')} ${ap}` : `${h} ${ap}`; };
-  const toMin = (hm) => { const [h, m] = hm.split(':').map(Number); return h * 60 + m; };
-  function status(hours, closed) {
-    const now = la(); const byDay = Object.fromEntries(hours.map((h) => [h.day, h]));
-    const special = (closed || []).find((c) => c.date === now.date);
-    const today = byDay[now.day];
-    if (special) return { open: false, text: `Closed today${special.reason ? ': ' + special.reason : ''}` };
-    if (today && !today.closed) {
-      if (now.mins < toMin(today.open)) return { open: false, text: `Opens today at ${t12(today.open)}` };
-      if (now.mins < toMin(today.close)) return { open: true, text: `Open today until ${t12(today.close)}` };
-    }
-    for (let i = 1; i <= 7; i++) {
-      const d = new Date(Date.now() + i * 864e5);
-      const name = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' }).format(d);
-      const iso = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(d);
-      const h = byDay[name];
-      if (h && !h.closed && !(closed || []).some((c) => c.date === iso)) return { open: false, text: `Closed now · opens ${i === 1 ? 'tomorrow' : name} at ${t12(h.open)}` };
-    }
-    return { open: false, text: 'Closed' };
-  }
-  document.querySelectorAll('[data-hours]').forEach((el) => {
-    try {
-      const s = status(JSON.parse(el.dataset.hours), JSON.parse(el.dataset.closed || '[]'));
-      el.textContent = s.text; el.dataset.open = String(s.open);
-    } catch (e) { /* keep the static text */ }
-  });
+  // Hours table: mark today's row (Los Angeles time)
+  const la = () => ({ day: new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' }).format(new Date()) });
   const today = la().day;
   document.querySelectorAll('.hours tr[data-day]').forEach((tr) => tr.classList.toggle('is-today', tr.dataset.day === today));
 
