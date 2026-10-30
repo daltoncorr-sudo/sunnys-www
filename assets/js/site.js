@@ -139,6 +139,51 @@
     addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   }
 
+  // Events calendar: month grid of upcoming events (Eventbrite), in Los Angeles time
+  document.querySelectorAll('.calendar').forEach((cal) => {
+    let events = [];
+    try { events = JSON.parse(cal.dataset.events || '[]'); } catch (e) { /* keep empty */ }
+    cal.hidden = false;
+    const fb = document.querySelector('.calendar-fallback'); if (fb) fb.hidden = true;
+    const tz = 'America/Los_Angeles';
+    const ymd = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(d);
+    const timeFmt = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' });
+    const t12 = (d) => timeFmt.format(d).replace(':00', '').replace(' AM', ' am').replace(' PM', ' pm');
+    const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const dayLabel = (d) => `${new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' }).format(d)}, ${t12(d)}`;
+    const items = events.map((e) => ({ ...e, d: new Date(e.start) })).filter((e) => !isNaN(e.d)).sort((a, b) => a.d - b.d);
+    const byDay = {}; items.forEach((e) => { (byDay[ymd(e.d)] = byDay[ymd(e.d)] || []).push(e); });
+    const today = ymd(new Date());
+    const next = items.find((e) => ymd(e.d) >= today);
+    let [y, m] = (next ? ymd(next.d) : today).split('-').map(Number);
+    const title = cal.querySelector('.calendar__month'); const tbody = cal.querySelector('tbody'); const list = cal.querySelector('.calendar__list');
+    const monthName = () => new Date(Date.UTC(y, m - 1, 15)).toLocaleString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+    const pad = (n) => String(n).padStart(2, '0');
+    const render = () => {
+      title.textContent = monthName();
+      const first = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+      let html = ''; let day = 1 - first; const inMonth = [];
+      while (day <= days) {
+        html += '<tr>';
+        for (let c = 0; c < 7; c++, day++) {
+          if (day < 1 || day > days) { html += '<td class="is-out"></td>'; continue; }
+          const key = `${y}-${pad(m)}-${pad(day)}`; const evs = byDay[key] || []; inMonth.push(...evs);
+          const cls = [key === today && 'is-today', key < today && 'is-past', evs.length && 'has-events'].filter(Boolean).join(' ');
+          html += `<td class="${cls}"><span class="calendar__day">${day}</span>${evs.map((e) => `<a class="calendar__event" href="${esc(e.url)}"><span>${t12(e.d)}</span>${esc(e.name)}</a>`).join('')}</td>`;
+        }
+        html += '</tr>';
+      }
+      tbody.innerHTML = html;
+      list.innerHTML = inMonth.length
+        ? `<ul class="event-list">${inMonth.map((e) => `<li><a href="${esc(e.url)}"><time datetime="${esc(e.start)}">${dayLabel(e.d)}</time><span>${esc(e.name)}</span><span class="event-list__rsvp">RSVP</span></a></li>`).join('')}</ul>`
+        : `<p class="empty">Nothing on the calendar for ${monthName()} yet. New events are announced here and in the newsletter.</p>`;
+    };
+    cal.querySelectorAll('[data-month]').forEach((b) => b.addEventListener('click', () => {
+      m += Number(b.dataset.month); if (m < 1) { m = 12; y -= 1; } if (m > 12) { m = 1; y += 1; } render();
+    }));
+    render();
+  });
+
   // Native share on phones
   document.querySelectorAll('[data-share]').forEach((b) => {
     if (!navigator.share) { b.hidden = true; return; }
