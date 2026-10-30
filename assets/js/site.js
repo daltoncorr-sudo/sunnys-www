@@ -210,3 +210,10 @@
     if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(swap); else swap();
   }));
 })();
+
+// Phone menu: Escape closes it and returns focus to the button.
+(() => {
+  const menu = document.querySelector(".nav details");
+  if (!menu) return;
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && menu.open) { menu.open = false; menu.querySelector("summary").focus(); } });
+})();
