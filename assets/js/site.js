@@ -132,6 +132,15 @@
     ups.forEach((li) => { if (new Date(li.dataset.end).getTime() < now) li.hidden = true; else left += 1; });
     const none = document.querySelector('.events-none'); if (none && !left) none.hidden = false;
   }
+  // Home: always three cards. Up to three events still to come, then the most recent past events.
+  document.querySelectorAll('.cards[data-three]').forEach((list) => {
+    let shown = 0;
+    list.querySelectorAll('.card--upcoming').forEach((li) => {
+      const ended = new Date(li.dataset.end).getTime() < Date.now();
+      li.hidden = ended || shown >= 3; if (!li.hidden) shown += 1;
+    });
+    list.querySelectorAll('.card--fill').forEach((li) => { li.hidden = shown >= 3; if (!li.hidden) shown += 1; });
+  });
 
   // Native share on phones
   document.querySelectorAll('[data-share]').forEach((b) => {
